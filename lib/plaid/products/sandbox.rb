@@ -64,6 +64,56 @@ module Plaid
     end
   end
 
+  # Public: Class used to call the SandboxProcessorToken sub-product
+  class SandboxProcessorToken < BaseProduct
+    # Public: Creates a processor token for sandbox testing.
+    #
+    # Does a POST /sandbox/processor_token/create call which can be used
+    # to generate a processor_token given an institution.
+    #
+    # institution_id    - Specific institution id to generate token for.
+    # override_username - Specific test credential username to use (optional).
+    # override_password - Specific test credential password to use (optional).
+    # options           - Additional options to merge into API request.
+    #
+    # Returns a SandboxCreateResponse object with a public token and item id.
+    def create(institution_id:,
+               override_username: nil,
+               override_password: nil,
+               options: nil)
+
+      options_payload = {}
+      unless override_username.nil?
+        options_payload[:override_username] = override_username
+      end
+      unless override_password.nil?
+        options_payload[:override_password] = override_password
+      end
+      options_payload = options_payload.merge(options) unless options.nil?
+
+      post_with_auth 'sandbox/processor_token/create',
+                     SandboxCreateResponse,
+                     institution_id: institution_id,
+                     options: options_payload
+    end
+
+    # Public: Response for /sandbox/processor_token/create.
+    class SandboxCreateResponse < Models::BaseResponse
+      ##
+      # :attr_reader:
+      # Public: The String token.
+      property :processor_token
+    end
+  end
+
+  # Public: Class used to call the Sandbox product.
+  class Sandbox < BaseProduct
+    ##
+    # :attr_reader:
+    # Public: The Plaid::SandboxProcessorToken product accessor.
+    subproduct :sandbox_processor_token
+  end
+
   # Public: Class used to call the SandboxPublicToken sub-product
   class SandboxPublicToken < BaseProduct
     # Public: Creates a public token for sandbox testing.
